@@ -1,0 +1,39 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ocp-iaas
+  namespace: ocp-iaas
+spec:
+  strategy:
+    type: Recreate
+  replicas: 1
+  selector:
+    matchLabels:
+      app: "ocp-iaas"
+  template:
+    metadata:
+      labels:
+        app: "ocp-iaas"
+    spec:
+      containers:
+        - name: ocp-iaas
+          image: ghcr.io/grant-cl/ocp-iaas:latest
+          imagePullPolicy: Always
+          envFrom:
+          - secretRef:
+              name: ocp-vm-iaas-env
+          livenessProbe:
+            httpGet:
+              path: /
+              port: 3000
+            initialDelaySeconds: 15
+            periodSeconds: 10
+          volumeMounts:
+            - mountPath: /app/data
+              name: database
+      volumes:
+      - name: database
+        emptyDir: {}
+#        persistentVolumeClaim:
+#          claimName: ocp-iaas
+

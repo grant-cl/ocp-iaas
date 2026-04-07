@@ -1,0 +1,1028 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>OCP VM Management</title>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/luxon@3.4.4/build/global/luxon.min.js"></script>
+  <style>
+    /* Dark mode transitions for smooth theme switching */
+    body, .main-container {
+      transition: background-color 0.3s ease, color 0.3s ease;
+    }
+    
+    /* Dark mode body and main container */
+    body.dark {
+      background-color: #111827 !important;
+    }
+    
+    body.dark .main-container {
+      background-color: #1F2937 !important;
+    }
+    
+    body.dark .bg-white {
+      background-color: #1F2937 !important;
+    }
+    
+    body.dark .bg-gray-50 {
+      background-color: #374151 !important;
+    }
+    
+    body.dark .bg-gray-100 {
+      background-color: #374151 !important;
+    }
+    
+    body.dark .border {
+      border-color: #4B5563 !important;
+    }
+    
+    body.dark h1, body.dark h2, body.dark h3, body.dark th, body.dark td {
+      color: #F9FAFB !important;
+    }
+
+    body.dark .text-gray-700 {
+      color: #D1D5DB !important;
+    }
+    
+    body.dark .text-gray-900 {
+      color: #F9FAFB !important;
+    }
+    
+    body.dark .text-gray-600 {
+      color: #9CA3AF !important;
+    }
+
+    body.dark table {
+      background-color: #1F2937 !important;
+    }
+
+    body tbody tr:nth-child(even) {
+      background-color: #f3f4f6 !important;
+    }
+
+    body tbody tr:hover {
+      background-color: #b7c9e2 !important;
+    }
+
+    body.dark tbody tr:nth-child(even) {
+      background-color: #374151 !important;
+    }
+
+    body.dark tbody tr:hover {
+      background-color: #4B5563 !important;
+    }
+
+    /* Status badges */
+    .status-pending {
+      background-color: #FEF3C7;
+      color: #92400E;
+    }
+    
+    .status-submitted {
+      background-color: #DBEAFE;
+      color: #1E40AF;
+    }
+
+    .status-waiting {
+      background-color: #FEF3C7;
+      color: #92400E;
+    }
+    
+    .status-running {
+      background-color: #FEF3C7;
+      color: #92400E;
+    }
+    
+    .status-completed {
+      background-color: #D1FAE5;
+      color: #047857;
+    }
+    
+    .status-failed {
+      background-color: #FEE2E2;
+      color: #DC2626;
+    }
+
+    .status-not-started {
+      background-color: #F3F4F6;
+      color: #6B7280;
+    }
+
+    body.dark .status-pending {
+      background-color: #451A03;
+      color: #FCD34D;
+    }
+    
+    body.dark .status-submitted {
+      background-color: #1E3A8A;
+      color: #93C5FD;
+    }
+
+    body.dark .status-waiting {
+      background-color: #1E3A8A;
+      color: #93C5FD;
+    }
+    
+    body.dark .status-running {
+      background-color: #ca825a;
+      color: #FCD34D;
+    }
+    
+    body.dark .status-completed {
+      background-color: #064E3B;
+      color: #6EE7B7;
+    }
+    
+    body.dark .status-failed {
+      background-color: #7F1D1D;
+      color: #FCA5A5;
+    }
+
+    body.dark .status-not-started {
+      background-color: #2a313d;
+      color: #9CA3AF;
+    }
+
+    /* Modal styles */
+    .modal {
+      display: none;
+      position: fixed;
+      z-index: 1000;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0,0,0,0.5);
+    }
+
+    .modal-content {
+      background-color: white;
+      margin: 5% auto;
+      padding: 20px;
+      border-radius: 8px;
+      width: 90%;
+      max-width: 800px;
+      max-height: 80vh;
+      overflow-y: auto;
+    }
+
+    body.dark .modal-content {
+      background-color: #1F2937;
+      color: #F9FAFB;
+    }
+
+    .close {
+      color: #aaa;
+      float: right;
+      font-size: 28px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    .close:hover {
+      color: black;
+    }
+
+    body.dark .close:hover {
+      color: white;
+    }
+
+    /* Filter input dark mode styles */
+    body.dark input[type="text"] {
+      background-color: #374151 !important;
+      border-color: #4B5563 !important;
+      color: #F9FAFB !important;
+    }
+
+    body.dark input[type="text"]::placeholder {
+      color: #9CA3AF !important;
+    }
+
+    body.dark label {
+      color: #D1D5DB !important;
+    }
+
+    /* Sortable table headers */
+    .sortable-header {
+      cursor: pointer;
+      user-select: none;
+      position: relative;
+      padding-right: 20px !important;
+    }
+
+    .sortable-header:hover {
+      background-color: rgba(59, 130, 246, 0.1);
+    }
+
+    body.dark .sortable-header:hover {
+      background-color: rgba(59, 130, 246, 0.2);
+    }
+
+    .sort-indicator {
+      position: absolute;
+      right: 6px;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: 12px;
+      opacity: 0.5;
+    }
+
+    .sort-indicator.active {
+      opacity: 1;
+      color: #3B82F6;
+    }
+
+    .sort-indicator.asc::after {
+      content: '▲';
+    }
+
+    .sort-indicator.desc::after {
+      content: '▼';
+    }
+
+    .sort-indicator:not(.active)::after {
+      content: '';
+    }
+  </style>
+</head>
+<body class="bg-gray-100 min-h-screen">
+  <div class="main-container bg-white min-h-screen">
+    <div class="container mx-auto px-4 py-8">
+      <div class="flex justify-between items-center mb-8">
+        <h1 class="text-3xl font-bold text-gray-900">OCP VM Management</h1>
+        <div class="flex items-center space-x-4">
+          <a href="/awx-form" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded text-sm font-medium transition duration-150 ease-in-out">
+            New Virtual Machine
+          </a>
+          <button id="darkModeToggle" class="px-3 py-2 rounded text-sm font-medium transition duration-150 ease-in-out">
+            🌙 Dark
+          </button>
+          <button id="resetTheme" class="dark:hover:bg-gray-800 px-2 py-2 rounded text-xs transition duration-150 ease-in-out" title="Follow system theme">
+            🔄
+          </button>
+          <a href="/logout" class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded text-sm font-medium transition duration-150 ease-in-out">
+            Logout
+          </a>
+        </div>
+      </div>
+      <span id="autoRefreshIndicator" class="text-xs text-gray-500 hidden">
+        🔄 Auto-refreshing...
+      </span>
+      <div class="bg-white border rounded-lg shadow-sm overflow-hidden">
+        <div class="px-6 py-4 border-b">          
+          <!-- Filter Controls -->
+           <div class="flex justify-between items-center mb-4">
+            <div class="flex items-center space-x-2">
+              <label for="hostnameFilter" class="text-sm font-medium text-gray-700">Hostname:</label>
+              <input 
+                type="text" 
+                id="hostnameFilter" 
+                placeholder="Enter hostname to filter..."
+                class="px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              />
+              <button id="clearFilter" class="bg-gray-400 hover:bg-gray-500 text-white px-3 py-2 rounded text-sm">
+                Clear
+              </button>
+              <div id="filterStatus" class="text-sm text-gray-600"></div>
+            </div>               
+              <button id="refreshBtn" class="bg-gray-500 hover:bg-gray-600 text-white px-3 py-1 rounded text-sm">
+                🔄 Refresh
+              </button>
+           </div>
+        </div>
+        
+        <div class="overflow-x-auto">
+          <table class="w-full">
+            <thead class="bg-gray-100">
+              <tr>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider sortable-header" data-sort="id">
+                  ID<span class="sort-indicator"></span>
+                </th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider sortable-header" data-sort="created_at">
+                  Created<span class="sort-indicator"></span>
+                </th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider sortable-header" data-sort="engineer_name">
+                  Engineer<span class="sort-indicator"></span>
+                </th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider sortable-header" data-sort="hostname">
+                  Hostname<span class="sort-indicator"></span>
+                </th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider sortable-header" data-sort="environment">
+                  Environment<span class="sort-indicator"></span>
+                </th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider sortable-header" data-sort="namespace">
+                  Namespace<span class="sort-indicator"></span>
+                </th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider sortable-header" data-sort="day1_status">
+                  Day 1 Status<span class="sort-indicator"></span>
+                </th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider sortable-header" data-sort="day2_status">
+                  Day 2 Status<span class="sort-indicator"></span>
+                </th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Delete</th>
+              </tr>
+            </thead>
+            <tbody id="submissionsTable" class="bg-white divide-y divide-gray-200">
+              <!-- Submissions will be loaded here -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Details Modal -->
+  <div id="detailsModal" class="modal">
+    <div class="modal-content">
+      <span class="close">&times;</span>
+      <h2 class="text-xl font-bold mb-4">Submission Details</h2>
+      <div id="modalContent">
+        <!-- Content will be loaded here -->
+      </div>
+    </div>
+  </div>
+
+  <!-- Confirmation Modal -->
+  <div id="confirmModal" class="modal">
+    <div class="modal-content" style="max-width: 400px;">
+      <span class="close" id="confirmClose">&times;</span>
+      <h3 class="text-lg font-bold mb-4">Confirm Action</h3>
+      <p id="confirmMessage" class="mb-4"></p>
+      <div class="flex justify-end space-x-2">
+        <button id="confirmCancel" class="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded">Cancel</button>
+        <button id="confirmAction" class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded">Confirm</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Global variables
+    let submissions = [];
+    let filteredSubmissions = [];
+    let currentHostnameFilter = '';
+    let autoRefreshInterval = null;
+    let currentSortField = 'id';
+    let currentSortDirection = 'desc';
+    
+    // Sorting functionality
+    function sortSubmissions(field, direction = 'asc') {
+      filteredSubmissions.sort((a, b) => {
+        let aValue = a[field];
+        let bValue = b[field];
+        
+        // Handle different data types
+        if (field === 'id') {
+          aValue = parseInt(aValue);
+          bValue = parseInt(bValue);
+        } else if (field === 'created_at') {
+          aValue = new Date(aValue);
+          bValue = new Date(bValue);
+        } else if (field.includes('status')) {
+          // Handle status fields with default values
+          aValue = aValue || 'not_started';
+          bValue = bValue || 'not_started';
+          aValue = aValue.toLowerCase();
+          bValue = bValue.toLowerCase();
+        } else if (typeof aValue === 'string') {
+          aValue = aValue.toLowerCase();
+          bValue = bValue ? bValue.toLowerCase() : '';
+        }
+        
+        // Handle null/undefined values
+        if (aValue === null || aValue === undefined) aValue = '';
+        if (bValue === null || bValue === undefined) bValue = '';
+        
+        let comparison = 0;
+        if (aValue < bValue) {
+          comparison = -1;
+        } else if (aValue > bValue) {
+          comparison = 1;
+        }
+        
+        return direction === 'desc' ? comparison * -1 : comparison;
+      });
+    }
+    
+    // Handle column header clicks for sorting
+    function handleSort(field) {
+      if (currentSortField === field) {
+        // Toggle direction if same field
+        currentSortDirection = currentSortDirection === 'asc' ? 'desc' : 'asc';
+      } else {
+        // New field, default to ascending
+        currentSortField = field;
+        currentSortDirection = 'asc';
+      }
+      
+      // Update visual indicators
+      updateSortIndicators();
+      
+      // Sort and re-render
+      sortSubmissions(currentSortField, currentSortDirection);
+      renderSubmissions();
+    }
+    
+    // Update sort indicators in table headers
+    function updateSortIndicators() {
+      // Reset all indicators
+      document.querySelectorAll('.sort-indicator').forEach(indicator => {
+        indicator.className = 'sort-indicator';
+      });
+      
+      // Set active indicator
+      const activeHeader = document.querySelector(`[data-sort="${currentSortField}"] .sort-indicator`);
+      if (activeHeader) {
+        activeHeader.className = `sort-indicator active ${currentSortDirection}`;
+      }
+    }
+    
+    // Load submissions from server
+    async function loadSubmissions() {
+      try {
+        const response = await fetch('/api/submissions');
+        if (response.ok) {
+          submissions = await response.json();
+          applyFilters();
+          renderSubmissions();
+        } else {
+          console.error('Failed to load submissions:', response.status);
+          showError('Failed to load submissions');
+        }
+      } catch (error) {
+        console.error('Error loading submissions:', error);
+        showError('Error loading submissions');
+      }
+    }
+
+    // Apply filters to submissions
+    function applyFilters() {
+      filteredSubmissions = submissions.filter(submission => {
+        // Apply hostname filter
+        if (currentHostnameFilter && !submission.hostname.toLowerCase().includes(currentHostnameFilter.toLowerCase())) {
+          return false;
+        }
+        return true;
+      });
+      
+      // Apply current sorting
+      sortSubmissions(currentSortField, currentSortDirection);
+      
+      // Update filter status
+      updateFilterStatus();
+    }
+
+    // Update filter status display
+    function updateFilterStatus() {
+      const statusElement = document.getElementById('filterStatus');
+      if (currentHostnameFilter) {
+        statusElement.textContent = `Showing ${filteredSubmissions.length} of ${submissions.length} submissions`;
+      } else {
+        statusElement.textContent = `Showing ${submissions.length} submissions`;
+      }
+    }
+
+    // Filter submissions by hostname
+    function filterByHostname(hostname) {
+      currentHostnameFilter = hostname;
+      applyFilters();
+      renderSubmissions();
+    }
+
+    // Clear all filters
+    function clearFilters() {
+      currentHostnameFilter = '';
+      document.getElementById('hostnameFilter').value = '';
+      applyFilters();
+      renderSubmissions();
+    }
+
+    // Start auto-refresh for submissions with active AWX jobs
+    function startAutoRefresh() {
+      const indicator = document.getElementById('autoRefreshIndicator');
+      
+      if (autoRefreshInterval) {
+        clearInterval(autoRefreshInterval);
+      }
+      
+      // Check if there are any running or submitted submissions (from all submissions, not just filtered)
+      const activeSubmissions = submissions.filter(s => {
+        const day1Status = s.day1_status || 'not_started';
+        const day2Status = s.day2_status || 'not_started';
+        return day1Status === 'submitted' || day1Status === 'running' || 
+               day2Status === 'submitted' || day2Status === 'running';
+      });
+      
+      if (activeSubmissions.length > 0) {
+        console.log(`Starting auto-refresh for ${activeSubmissions.length} active submissions`);
+        // Refresh every 5 seconds when there are active jobs
+        autoRefreshInterval = setInterval(loadSubmissions, 5000);
+        if (indicator) {
+          indicator.classList.remove('hidden');
+          indicator.textContent = `🔄 Auto-refreshing (${activeSubmissions.length} active jobs)...`;
+        }
+      } else {
+        stopAutoRefresh();
+      }
+    }
+
+    // Stop auto-refresh
+    function stopAutoRefresh() {
+      const indicator = document.getElementById('autoRefreshIndicator');
+      
+      if (autoRefreshInterval) {
+        clearInterval(autoRefreshInterval);
+        autoRefreshInterval = null;
+        console.log('Auto-refresh stopped');
+      }
+      
+      if (indicator) {
+        indicator.classList.add('hidden');
+      }
+    }
+
+    // Render submissions table
+    function renderSubmissions() {
+      const tbody = document.getElementById('submissionsTable');
+      tbody.innerHTML = '';
+
+      if (filteredSubmissions.length === 0) {
+        const message = currentHostnameFilter 
+          ? `No submissions found matching hostname filter: "${currentHostnameFilter}"`
+          : 'No submissions found';
+        tbody.innerHTML = `
+          <tr>
+            <td colspan="10" class="px-6 py-4 text-center text-gray-500">
+              ${message}
+            </td>
+          </tr>
+        `;
+        return;
+      }
+
+      filteredSubmissions.forEach(submission => {
+        const row = document.createElement('tr');
+        row.className = 'hover:bg-gray-50 cursor-pointer';
+        
+        const day1Status = submission.day1_status || 'not_started';
+        const day2Status = submission.day2_status || 'not_started';
+        
+        const day1StatusClass = `status-${day1Status.replace('_', '-')}`;
+        const day2StatusClass = `status-${day2Status.replace('_', '-')}`;
+        
+        const createdDate = new Date(submission.created_at).toLocaleDateString();
+        //const createdTime = new Date(submission.created_at).toLocaleTimeString();
+        const jsDate = new Date(submission.created_at);
+        dt = luxon.DateTime.fromJSDate(jsDate, { zone: 'UTC' });
+        let utc = dt.toUTC();
+        createdTime = dt.toFormat('HH:mm:ss');
+        
+        row.innerHTML = `
+          <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">${submission.id}</td>
+          <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+            <div>${createdDate}</div>
+            <div class="text-xs text-gray-400">${createdTime}</div>
+          </td>
+          <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+            <div>${submission.engineer_name}</div>
+            <div class="text-xs text-gray-400">${submission.engineer_id}</div>
+          </td>
+          <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${submission.hostname}</td>
+          <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">${submission.environment}</td>
+          <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">${submission.namespace}</td>
+          <td class="px-6 py-4 whitespace-nowrap">
+            ${submission.day1_job_url ? 
+              `<a href="${submission.day1_job_url}" target="_blank" class="inline-block">
+                <span class="px-2 py-1 text-xs font-semibold rounded-full ${day1StatusClass} hover:opacity-80 cursor-pointer">
+                  ${day1Status.replace('_', ' ')}
+                </span>
+              </a>` :
+              `<span class="px-2 py-1 text-xs font-semibold rounded-full ${day1StatusClass}">
+                ${day1Status.replace('_', ' ')}
+              </span>`
+            }
+          </td>
+          <td class="px-6 py-4 whitespace-nowrap">
+            ${submission.day2_job_url ? 
+              `<a href="${submission.day2_job_url}" target="_blank" class="inline-block">
+                <span class="px-2 py-1 text-xs font-semibold rounded-full ${day2StatusClass} hover:opacity-80 cursor-pointer">
+                  ${day2Status.replace('_', ' ')}
+                </span>
+              </a>` :
+              `<span class="px-2 py-1 text-xs font-semibold rounded-full ${day2StatusClass}">
+                ${day2Status.replace('_', ' ')}
+              </span>`
+            }
+          </td>
+          <td class="px-6 py-4 whitespace-nowrap text-sm">
+            <div class="flex space-x-2">
+              <button onclick="viewDetails(${submission.id})" class="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded text-xs font-medium transition duration-150 ease-in-out">View</button>
+              ${(day1Status === 'not_started' || day1Status === 'failed') ? 
+                `<button onclick="submitDay1(${submission.id})" class="bg-green-500 hover:bg-green-600 text-white px-3 py-1 rounded text-xs font-medium transition duration-150 ease-in-out">Day 1</button>` : ''}
+              ${((day1Status === 'submitted' || day1Status === 'running')) ? 
+                `<button disabled class="bg-gray-300 text-gray-500 cursor-not-allowed px-3 py-1 rounded text-xs font-medium">Day 1 Running...</button>` : ''}
+              ${(day1Status === 'completed' && (day2Status === 'not_started' || day2Status === 'failed')) ? 
+                `<button onclick="submitDay2(${submission.id})" class="bg-yellow-500 hover:bg-yellow-600 text-white px-3 py-1 rounded text-xs font-medium transition duration-150 ease-in-out">Day 2</button>` : ''}
+              ${(day1Status === 'completed' && (day2Status === 'submitted' || day2Status === 'running')) ? 
+                `<button disabled class="bg-gray-300 text-gray-500 cursor-not-allowed px-3 py-1 rounded text-xs font-medium">Day 2 Running...</button>` : ''}
+            </div>
+          </td>
+          <td class="px-6 py-4 whitespace-nowrap text-sm">
+            <button onclick="deleteSubmission(${submission.id},'${submission.hostname}')" class="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded text-xs font-medium transition duration-150 ease-in-out">Delete</button>
+          </td>
+        `;
+        
+        tbody.appendChild(row);
+      });
+      
+      // Update sort indicators
+      updateSortIndicators();
+      
+      // Start auto-refresh if there are active submissions
+      startAutoRefresh();
+    }
+
+    // View submission details
+    async function viewDetails(id) {
+      try {
+        const response = await fetch(`/api/submissions/${id}`);
+        if (response.ok) {
+          const submission = await response.json();
+          showDetailsModal(submission);
+        } else {
+          showError('Failed to load submission details');
+        }
+      } catch (error) {
+        console.error('Error loading details:', error);
+        showError('Error loading submission details');
+      }
+    }
+
+    // Show details modal
+    function showDetailsModal(submission) {
+      const modal = document.getElementById('detailsModal');
+      const content = document.getElementById('modalContent');
+      
+      const formData = submission.form_data;
+      const createdDate = new Date(submission.created_at).toLocaleString();
+      const updatedDate = new Date(submission.updated_at).toLocaleString();
+      
+      const day1Status = submission.day1_status || 'not_started';
+      const day2Status = submission.day2_status || 'not_started';
+      
+      content.innerHTML = `
+        <div class="space-y-4">
+          <div class="grid grid-cols-2 gap-4">
+            <div><strong>ID:</strong> ${submission.id}</div>
+            <div><strong>Hostname:</strong> ${submission.hostname}</div>
+            
+            <div><strong>Created:</strong> ${createdDate}</div>
+            <div><strong>Updated:</strong> ${updatedDate}</div>
+            <div><strong>Engineer:</strong> ${submission.engineer_name} (${submission.engineer_id})</div>
+            <div><strong>Service:</strong> ${submission.service}</div>
+            <div><strong>Environment:</strong> ${submission.environment}</div>
+            <div><strong>Namespace:</strong> ${submission.namespace}</div>
+            
+          </div>
+          
+          <div class="grid grid-cols-2 gap-4 border-t pt-4">
+            <div>
+              <h3 class="font-semibold mb-2">Day 1 Status</h3>
+              <div><strong>Status:</strong> <span class="px-2 py-1 text-xs font-semibold rounded-full status-${day1Status.replace('_', '-')}">${day1Status.replace('_', ' ')}</span></div>
+              ${submission.day1_job_id ? `<div><strong>Job ID:</strong> ${submission.day1_job_id}</div>` : ''}
+              ${submission.day1_awx_status ? `<div><strong>AWX Status:</strong> ${submission.day1_awx_status}</div>` : ''}
+              ${submission.day1_job_url ? `<div><strong>Job URL:</strong> <a href="${submission.day1_job_url}" target="_blank" class="text-blue-600 hover:text-blue-800 underline">View Job</a></div>` : ''}
+              ${submission.day1_notes ? `<div><strong>Notes:</strong><div class="mt-1 p-2 bg-gray-100 dark:bg-gray-700 rounded text-sm">${submission.day1_notes}</div></div>` : ''}
+            </div>
+            <div>
+              <h3 class="font-semibold mb-2">Day 2 Status</h3>
+              <div><strong>Status:</strong> <span class="px-2 py-1 text-xs font-semibold rounded-full status-${day2Status.replace('_', '-')}">${day2Status.replace('_', ' ')}</span></div>
+              ${submission.day2_job_id ? `<div><strong>Job ID:</strong> ${submission.day2_job_id}</div>` : ''}
+              ${submission.day2_awx_status ? `<div><strong>AWX Status:</strong> ${submission.day2_awx_status}</div>` : ''}
+              ${submission.day2_job_url ? `<div><strong>Job URL:</strong> <a href="${submission.day2_job_url}" target="_blank" class="text-blue-600 hover:text-blue-800 underline">View Job</a></div>` : ''}
+              ${submission.day2_notes ? `<div><strong>Notes:</strong><div class="mt-1 p-2 bg-gray-100 dark:bg-gray-700 rounded text-sm">${submission.day2_notes}</div></div>` : ''}
+            </div>
+          </div>
+          
+          ${submission.description ? `
+          <div>
+            <strong>Description:</strong>
+            <div class="mt-1 p-2 bg-gray-100 dark:bg-gray-700 rounded">${submission.description}</div>
+          </div>
+          ` : ''}
+
+          ${submission.awx_job_id ? `
+          <div class="border-t pt-4">
+            <h3 class="font-semibold mb-2">Legacy AWX Job Info</h3>
+            <div class="grid grid-cols-2 gap-4">
+              <div><strong>AWX Job ID:</strong> ${submission.awx_job_id}</div>
+              <div><strong>AWX Status:</strong> ${submission.awx_status || 'Unknown'}</div>
+            </div>
+            ${submission.awx_job_url ? `<div><strong>AWX Job URL:</strong> <a href="${submission.awx_job_url}" target="_blank" class="text-blue-600 hover:text-blue-800 underline">${submission.awx_job_url}</a></div>` : ''}
+          </div>
+          ` : ''}
+
+          ${submission.notes ? `
+          <div>
+            <strong>Notes:</strong>
+            <div class="mt-1 p-2 bg-gray-100 dark:bg-gray-700 rounded">${submission.notes}</div>
+          </div>
+          ` : ''}
+
+          <div>
+            <strong>Form Data:</strong>
+            <details class="mt-1">
+              <summary class="cursor-pointer text-blue-600 hover:text-blue-800">Show/Hide Technical Details</summary>
+              <pre class="mt-2 p-4 bg-gray-100 dark:bg-gray-700 rounded text-xs overflow-x-auto">${JSON.stringify(formData, null, 2)}</pre>
+            </details>
+          </div>
+        </div>
+      `;
+      
+      modal.style.display = 'block';
+    }
+
+    // Submit Day 1 to AWX
+    async function submitDay1(id) {
+      if (!confirm(`Are you sure you want to submit Day 1 for submission #${id} to AWX?`)) {
+        return;
+      }
+
+      // Show loading state
+      const submitButton = document.querySelector(`button[onclick="submitDay1(${id})"]`);
+      if (submitButton) {
+        submitButton.textContent = 'Submitting...';
+        submitButton.disabled = true;
+      }
+
+      try {
+        const response = await fetch(`/api/submissions/${id}/day1`, {
+          method: 'POST'
+        });
+        
+        const result = await response.json();
+        
+        if (response.ok) {
+          showSuccess(`Day 1 for submission #${id} successfully sent to AWX. Job ID: ${result.job_id}`);
+          // Immediate refresh to show updated status
+          await loadSubmissions();
+        } else {
+          showError(`Failed to submit Day 1 to AWX: ${result.error}`);
+          // Re-enable button on error
+          if (submitButton) {
+            submitButton.textContent = 'Day 1';
+            submitButton.disabled = false;
+          }
+        }
+      } catch (error) {
+        console.error('Error submitting Day 1 to AWX:', error);
+        showError('Error submitting Day 1 to AWX');
+        // Re-enable button on error
+        if (submitButton) {
+          submitButton.textContent = 'Day 1';
+          submitButton.disabled = false;
+        }
+      }
+    }
+
+    // Submit Day 2 to AWX
+    async function submitDay2(id) {
+      if (!confirm(`Are you sure you want to submit Day 2 for submission #${id} to AWX?`)) {
+        return;
+      }
+
+      // Show loading state
+      const submitButton = document.querySelector(`button[onclick="submitDay2(${id})"]`);
+      if (submitButton) {
+        submitButton.textContent = 'Submitting...';
+        submitButton.disabled = true;
+      }
+
+      try {
+        const response = await fetch(`/api/submissions/${id}/day2`, {
+          method: 'POST'
+        });
+        
+        const result = await response.json();
+        
+        if (response.ok) {
+          showSuccess(`Day 2 for submission #${id} successfully sent to AWX. Job ID: ${result.job_id}`);
+          // Immediate refresh to show updated status
+          await loadSubmissions();
+        } else {
+          showError(`Failed to submit Day 2 to AWX: ${result.error}`);
+          // Re-enable button on error
+          if (submitButton) {
+            submitButton.textContent = 'Day 2';
+            submitButton.disabled = false;
+          }
+        }
+      } catch (error) {
+        console.error('Error submitting Day 2 to AWX:', error);
+        showError('Error submitting Day 2 to AWX');
+        // Re-enable button on error
+        if (submitButton) {
+          submitButton.textContent = 'Day 2';
+          submitButton.disabled = false;
+        }
+      }
+    }
+
+    // Delete submission
+    function deleteSubmission(id,hostname) {
+      showConfirmModal(
+        `Are you sure you want to delete ${hostname}? This action cannot be undone.`,
+        async () => {
+          try {
+            const response = await fetch(`/api/submissions/${id}`, {
+              method: 'DELETE'
+            });
+            
+            if (response.ok) {
+              showSuccess(`${hostname} deleted successfully`);
+              loadSubmissions(); // Refresh the table
+            } else {
+              const result = await response.json();
+              showError(`Failed to delete submission: ${result.error}`);
+            }
+          } catch (error) {
+            console.error('Error deleting submission:', error);
+            showError('Error deleting submission');
+          }
+        }
+      );
+    }
+
+    // Show confirmation modal
+    function showConfirmModal(message, onConfirm) {
+      const modal = document.getElementById('confirmModal');
+      const messageElement = document.getElementById('confirmMessage');
+      const confirmButton = document.getElementById('confirmAction');
+      
+      messageElement.textContent = message;
+      
+      // Remove any existing event listeners
+      const newConfirmButton = confirmButton.cloneNode(true);
+      confirmButton.parentNode.replaceChild(newConfirmButton, confirmButton);
+      
+      // Add new event listener
+      newConfirmButton.addEventListener('click', () => {
+        modal.style.display = 'none';
+        onConfirm();
+      });
+      
+      modal.style.display = 'block';
+    }
+
+    // Show success message
+    function showSuccess(message) {
+      // Create a temporary success notification
+      const notification = document.createElement('div');
+      notification.className = 'fixed top-4 right-4 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg z-50';
+      notification.textContent = message;
+      document.body.appendChild(notification);
+      
+      setTimeout(() => {
+        document.body.removeChild(notification);
+      }, 5000);
+    }
+
+    // Show error message
+    function showError(message) {
+      // Create a temporary error notification
+      const notification = document.createElement('div');
+      notification.className = 'fixed top-4 right-4 bg-red-500 text-white px-6 py-3 rounded-lg shadow-lg z-50';
+      notification.textContent = message;
+      document.body.appendChild(notification);
+      
+      setTimeout(() => {
+        document.body.removeChild(notification);
+      }, 5000);
+    }
+
+    // Modal event handlers
+    document.addEventListener('DOMContentLoaded', function() {
+      // Load submissions on page load
+      loadSubmissions();
+
+      // Filter event handlers
+      const hostnameFilter = document.getElementById('hostnameFilter');
+      const clearFilter = document.getElementById('clearFilter');
+
+      // Hostname filter input
+      hostnameFilter.addEventListener('input', function() {
+        filterByHostname(this.value);
+      });
+
+      // Clear filter button
+      clearFilter.addEventListener('click', function() {
+        clearFilters();
+      });
+
+      // Sortable column headers
+      document.querySelectorAll('.sortable-header').forEach(header => {
+        header.addEventListener('click', function() {
+          const sortField = this.getAttribute('data-sort');
+          handleSort(sortField);
+        });
+      });
+
+      // Initialize sort indicators
+      updateSortIndicators();
+
+      // Close modals when clicking X
+      document.querySelectorAll('.close').forEach(closeBtn => {
+        closeBtn.onclick = function() {
+          this.closest('.modal').style.display = 'none';
+        }
+      });
+
+      // Close modals when clicking outside
+      window.onclick = function(event) {
+        if (event.target.classList.contains('modal')) {
+          event.target.style.display = 'none';
+        }
+      }
+
+      // Confirm modal cancel button
+      document.getElementById('confirmCancel').onclick = function() {
+        document.getElementById('confirmModal').style.display = 'none';
+      }
+
+      // Refresh button
+      document.getElementById('refreshBtn').onclick = loadSubmissions;
+      
+      // Cleanup auto-refresh when page is unloaded
+      window.addEventListener('beforeunload', stopAutoRefresh);
+    });
+
+    // Dark mode functionality (same as the form)
+    function initDarkMode() {
+      const darkModeToggle = document.getElementById('darkModeToggle');
+      const resetTheme = document.getElementById('resetTheme');
+      const body = document.body;
+      
+      function updateThemeDisplay(isDark, isSystemControlled = false) {
+        if (isDark) {
+          body.classList.add('dark');
+          darkModeToggle.innerHTML = '☀️ Light';
+          darkModeToggle.className = 'bg-gray-800 hover:bg-gray-700 text-gray-200 px-3 py-2.5 rounded text-sm font-medium transition duration-150 ease-in-out';
+          resetTheme.className = 'bg-gray-800 hover:bg-gray-700 text-gray-200 px-2 py-2.5 rounded text-xs transition duration-150 ease-in-out';
+        } else {
+          body.classList.remove('dark');
+          darkModeToggle.innerHTML = '🌙 Dark';
+          darkModeToggle.className = 'bg-gray-100 hover:bg-gray-300 text-gray-800 px-3 py-2.5 rounded text-sm font-medium transition duration-150 ease-in-out';
+          resetTheme.className = 'bg-gray-100 hover:bg-gray-300 text-gray-800 px-2 py-2.5 rounded text-xs font-medium transition duration-150 ease-in-out';
+        }
+        
+        if (isSystemControlled) {
+          resetTheme.style.opacity = '0.5';
+          resetTheme.title = 'Following system theme';
+        } else {
+          resetTheme.style.opacity = '1';
+          resetTheme.title = 'Reset to follow system theme';
+        }
+      }
+      
+      let isDarkMode = localStorage.getItem('darkMode');
+      let isSystemControlled = isDarkMode === null;
+      
+      if (isSystemControlled) {
+        isDarkMode = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+      } else {
+        isDarkMode = isDarkMode === 'true';
+      }
+      
+      updateThemeDisplay(isDarkMode, isSystemControlled);
+      
+      if (window.matchMedia) {
+        const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+        mediaQuery.addEventListener('change', function(e) {
+          if (localStorage.getItem('darkMode') === null) {
+            updateThemeDisplay(e.matches, true);
+          }
+        });
+      }
+      
+      darkModeToggle.addEventListener('click', function() {
+        body.classList.toggle('dark');
+        const isDark = body.classList.contains('dark');
+        localStorage.setItem('darkMode', isDark);
+        updateThemeDisplay(isDark, false);
+      });
+      
+      resetTheme.addEventListener('click', function() {
+        localStorage.removeItem('darkMode');
+        const systemDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+        updateThemeDisplay(systemDark, true);
+      });
+    }
+
+    // Initialize dark mode when page loads
+    document.addEventListener('DOMContentLoaded', function() {
+      initDarkMode();
+    });
+  </script>
+</body>
+</html>

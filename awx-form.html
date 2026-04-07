@@ -1,0 +1,1271 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AWX - New VM Request Form</title>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+  <style>
+    /* Dark mode transitions for smooth theme switching */
+    body, .main-container {
+      transition: background-color 0.3s ease, color 0.3s ease;
+    }
+    
+    /* Dark mode body and main container */
+    body.dark {
+      background-color: #111827 !important;
+    }
+    
+    body.dark .main-container {
+      background-color: #1F2937 !important;
+    }
+    
+    /* Dark mode form elements */
+    body.dark input, body.dark select, body.dark textarea {
+      background-color: #374151 !important;
+      border-color: #4B5563 !important;
+      color: #F9FAFB !important;
+    }
+    
+    body.dark input:read-only {
+      background-color: #1F2937 !important;
+      color: #9CA3AF !important;
+    }
+    
+    body.dark .bg-blue-100 {
+      background-color: #1E3A8A !important;
+    }
+    
+    body.dark .bg-gray-50 {
+      background-color: #1F2937 !important;
+    }
+    
+    body.dark .bg-gray-100 {
+      background-color: #374151 !important;
+    }
+    
+    body.dark .border {
+      border-color: #4B5563 !important;
+    }
+    
+    body.dark label {
+      color: #D1D5DB !important;
+    }
+    
+    body.dark h1, body.dark h2, body.dark h3 {
+      color: #F9FAFB !important;
+    }
+
+    body.dark .text-gray-700 {
+      color: #D1D5DB !important;
+    }
+    
+    body.dark .text-gray-900 {
+      color: #F9FAFB !important;
+    }
+    
+    /* Dark mode for dynamic content blocks */
+    body.dark .disk-block, body.dark .interface-block {
+      background-color: #1F2937 !important;
+      border-color: #4B5563 !important;
+    }
+  </style>
+</head>
+<body class="bg-gray-100 min-h-screen flex items-center justify-center">
+  <div class="main-container bg-white p-10 rounded-xl shadow-lg w-full max-w-5xl mx-auto">
+    <div class="flex justify-between items-center mb-10">
+      <h1 class="text-3xl font-bold text-center text-gray-900 dark:text-white">OCP - New VM Request Form</h1>
+      <div class="flex items-center space-x-4">
+        <a href="/submissions" class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded text-sm font-medium transition duration-150 ease-in-out">
+          View Virtual Machines
+        </a>
+        <button id="darkModeToggle" class="px-3 py-2 rounded text-sm font-medium transition duration-150 ease-in-out">
+          🌙 Dark
+        </button>
+        <button id="resetTheme" class="dark:hover:bg-gray-800 px-2 py-2 rounded text-xs transition duration-150 ease-in-out" title="Follow system theme">
+          🔄
+        </button>
+        <a href="/logout" class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded text-sm font-medium transition duration-150 ease-in-out">
+          Logout
+        </a>
+      </div>
+    </div>
+    <form id="awxForm">
+      <div>
+        <h2 class="font-bold mb-4 text-gray-900 dark:text-white flex items-center">
+          <svg class="w-6 h-6 mr-2 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+          </svg>
+          Operating System
+        </h2>
+        <div class="grid grid-cols-2 gap-6 mb-4">
+          <div>
+            <label class="block font-semibold mb-1 text-gray-700 dark:text-gray-300">Template</label>
+            <select name="template" class="w-full border rounded px-3 py-2" required onchange="updateType()">
+              <option value="rhel9-coe" selected>rhel9-coe</option>
+            </select>
+          </div>
+          <div>
+            <label class="block font-semibold mb-1 text-gray-700 dark:text-gray-300">Type</label>
+            <input type="text" name="type" class="w-full border border-gray-300 dark:border-gray-600 rounded px-3 py-2 bg-gray-100 dark:bg-gray-700 dark:text-white" readonly>
+          </div>
+        </div>
+        <div class="grid grid-cols-2 gap-6">
+          <div>
+            <label class="block font-semibold mb-1">OS Version</label>
+            <input type="text" name="os_version" class="w-full border rounded px-3 py-2 bg-gray-50" readonly>
+          </div>
+          <div>
+            <label class="block font-semibold mb-1">Satellite</label>
+            <input type="text" name="satellite" class="w-full border rounded px-3 py-2" required>
+          </div>
+        </div>
+      </div>
+
+      <div class="border-t pt-6 mt-8">
+        <h2 class="font-bold mb-4 text-gray-900 dark:text-white flex items-center">
+          <svg class="w-6 h-6 mr-2 text-red-600 dark:text-red-400" fill="currentColor" viewBox="0 0 24 24">
+            <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2" fill="none"/>
+            <circle cx="12" cy="12" r="6" fill="currentColor"/>
+          </svg>
+          OpenShift
+        </h2>
+        <div class="grid grid-cols-2 gap-6">
+          <div>
+            <label class="block font-semibold mb-1">Cluster</label>
+            <select name="cluster" class="w-full border rounded px-3 py-2" required>
+              <option value="">Select cluster...</option>
+            </select>
+          </div>
+          <div>
+            <label class="block font-semibold mb-1">Cluster Repo</label>
+            <input type="text" name="cluster_repo" class="w-full border rounded px-3 py-2 bg-gray-100" readonly>
+          </div>
+        </div>
+        <div class="grid grid-cols-2 gap-6">
+          <div>
+            <label class="block font-semibold mb-1">Namespace</label>
+            <select name="namespace" class="w-full border rounded px-3 py-2" required>
+              <option value="">Select namespace...</option>
+            </select>
+          </div>
+        </div>
+      </div>
+      <div class="border-t pt-6 mt-8">
+        <h2 class="font-bold mb-4 text-gray-900 dark:text-white flex items-center">
+          <svg class="w-6 h-6 mr-2 text-green-600 dark:text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+          </svg>
+          Request
+        </h2>
+        <div class="grid grid-cols-2 gap-6">
+          <div>
+            <label class="block font-semibold mb-1">Environment</label>
+            <select name="env" class="w-full border rounded px-3 py-2 bg-gray-100" required>
+              <option value="">Select Environment...</option>
+              <option value="Production">Production</option>
+              <option value="Staging">Staging</option>
+              <option value="Development">Development</option>
+              <option value="System Test">System Test</option>
+            </select>
+          </div>
+          <div>
+            <label class="block font-semibold mb-1">Hostname</label>
+            <input type="text" name="hostname" class="w-full border rounded px-3 py-2" placeholder="Please add hostname ..." required>
+          </div>
+        </div>
+        <div class="grid grid-cols-2 gap-6">
+          <div>
+            <label class="block font-semibold mb-1">Engineer Fullname</label>
+            <input type="text" name="engineer_fullname" class="w-full border rounded px-3 py-2 bg-gray-100" readonly required>
+          </div>
+          <div>
+            <label class="block font-semibold mb-1">Engineer ID</label>
+            <input type="text" name="engineer_id" class="w-full border rounded px-3 py-2 bg-gray-100" readonly required>
+          </div>
+        </div>
+        <div>
+          <label class="block font-semibold mb-1">Service</label>
+          <input type="text" name="service" class="w-full border rounded px-3 py-2" placeholder="Please add function ..." required>
+        </div>
+        <div>
+          <label class="block font-semibold mb-1">Description</label>
+          <textarea name="description" class="w-full border rounded px-3 py-2" placeholder="Please add description ..." required></textarea>
+        </div>
+      </div>
+      <div class="border-t pt-6 mt-8">
+        <h2 class="font-bold mb-4 text-gray-900 dark:text-white flex items-center">
+          <svg class="w-6 h-6 mr-2 text-yellow-600 dark:text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+          </svg>
+          Compute
+        </h2>
+        <div class="grid grid-cols-3 gap-4">
+          <div>
+            <label class="block font-semibold mb-1">Cores</label>
+            <input type="number" name="cores" value="1" class="w-full border rounded px-3 py-2" required>
+          </div>
+          <div>
+            <label class="block font-semibold mb-1">Sockets</label>
+            <input type="number" name="sockets" value="1" class="w-full border rounded px-3 py-2" required>
+          </div>
+          <div>
+            <label class="block font-semibold mb-1">Threads</label>
+            <input type="number" name="threads" value="1" class="w-full border rounded px-3 py-2" required>
+          </div>
+        </div>
+        <div class="mt-4">
+          <label class="block font-semibold mb-1">Memory</label>
+          <div class="grid grid-cols-2 gap-2">
+            <div>
+              <input type="number" name="memory_value" value="4" min="1" class="w-full border rounded px-3 py-2" required placeholder="Amount">
+            </div>
+            <div>
+              <select name="memory_unit" class="w-full border rounded px-3 py-2" required>
+                <option value="Mi">Mi (Megabytes)</option>
+                <option value="Gi" selected>Gi (Gigabytes)</option>
+              </select>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="border-t pt-6 mt-8">
+        <h2 class="font-bold mb-2 text-gray-900 dark:text-white flex items-center">
+          <svg class="w-6 h-6 mr-2 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.111 16.404a5.5 5.5 0 017.778 0M12 20h.01m-7.08-7.071c3.904-3.905 10.236-3.905 14.141 0M1.394 9.22c5.464-5.464 14.331-5.464 19.795 0"/>
+          </svg>
+          Network Interfaces
+        </h2>
+        <div id="network-interfaces"></div>
+        <button type="button" id="add-interface" class="mt-2 bg-green-600 text-white font-bold py-1 px-3 rounded hover:bg-green-700">Add Interface</button>
+        <div class="mt-2">
+          <label class="block font-semibold mb-1">DNS Servers (comma separated)</label>
+          <input type="text" name="dns_servers" value="10.235.128.41,10.235.128.40,10.236.132.47" class="w-full border rounded px-3 py-2" required>
+        </div>
+      </div>
+      <div class="border-t pt-6 mt-8">
+        <h2 class="font-bold mb-2 text-gray-900 dark:text-white flex items-center">
+          <svg class="w-6 h-6 mr-2 text-indigo-600 dark:text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <rect x="3" y="3" width="18" height="18" rx="2" ry="2" stroke-width="2"/>
+            <rect x="6" y="6" width="4" height="3" fill="currentColor"/>
+            <rect x="6" y="15" width="12" height="3" stroke="currentColor" stroke-width="1" fill="none"/>
+            <circle cx="12" cy="16.5" r="0.5" fill="currentColor"/>
+          </svg>
+          Storage
+        </h2>
+        <div class="mb-4">
+          <label class="block font-semibold mb-1">Storage Class</label>
+          <select name="storageclass" class="w-full border rounded px-3 py-2" required>
+            <option value="">Loading storage classes...</option>
+          </select>
+        </div>
+        <h3 class="font-bold mb-2 text-gray-900 dark:text-white flex items-center">
+          <svg class="w-5 h-5 mr-2 text-gray-600 dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4m0 5c0 2.21-3.582 4-8 4s-8-1.79-8-4"/>
+          </svg>
+          Storage Disks
+        </h3>
+        <div id="storage-disks"></div>
+        <button type="button" id="add-disk" class="mt-2 bg-green-600 text-white font-bold py-1 px-3 rounded hover:bg-green-700">Add Disk</button>
+      </div>
+      <button type="submit" class="mt-8 w-full bg-blue-600 dark:bg-blue-700 text-white font-bold py-3 px-4 rounded-lg text-lg hover:bg-blue-700 dark:hover:bg-blue-800 transition-colors duration-200">Save Submission</button>
+    </form>
+    <div id="result" class="mt-8"></div>
+  </div>
+  <script>
+    // Network attachment definitions cache
+    let networkAttachmentDefinitions = [];
+    
+    // Namespaces cache
+    let namespaces = [];
+    
+    // Clusters cache
+    let clusters = [];
+    
+    // DNS cache
+    let dnsServers = [];
+    
+    // Template mapping
+    let templates = [];
+    
+    // Function to fetch config values from API
+    async function fetchConfig() {
+      try {
+        const response = await fetch('/api/config', {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json'
+          }
+        });
+        
+        if (response.ok) {
+          const data = await response.json();
+          dnsServers = data.dnsServers || [];
+          templates = data.templates || [];
+          updateDnsField();
+          updateTemplateDropdown();
+          updateType();
+        } else {
+          console.error('Failed to fetch config:', response.status);
+          templates = [];
+          updateTemplateDropdown();
+          updateType();
+        }
+      } catch (error) {
+        console.error('Error fetching config:', error);
+      }
+    }
+    
+    function updateDnsField() {
+      const dnsInput = document.querySelector('input[name="dns_servers"]');
+      if (dnsInput) {
+        dnsInput.value = dnsServers.join(',');
+      }
+    }
+    
+    function updateTemplateDropdown() {
+      const templateSelect = document.querySelector('select[name="template"]');
+      if (!templateSelect) return;
+
+      const currentValue = templateSelect.value;
+      templateSelect.innerHTML = '<option value="">Select template...</option>';
+
+      templates.forEach(template => {
+        const option = document.createElement('option');
+        option.value = template.name;
+        option.textContent = template.name;
+        if (template.name === currentValue) {
+          option.selected = true;
+        }
+        templateSelect.appendChild(option);
+      });
+
+      if (!templateSelect.value && templates.length > 0) {
+        templateSelect.value = templates[0].name;
+      }
+    }
+
+    // Function to fetch clusters from API
+    async function fetchClusters() {
+      try {
+        const response = await fetch('/api/clusters', {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json'
+          }
+        });
+        
+        if (response.ok) {
+          const data = await response.json();
+          clusters = data.items || [];
+          console.log('Fetched clusters:', clusters);
+          updateClusterDropdown();
+        } else {
+          console.error('Failed to fetch clusters:', response.status);
+          updateClusterDropdown();
+        }
+      } catch (error) {
+        console.error('Error fetching clusters:', error);
+        updateClusterDropdown();
+      }
+    }
+    
+    async function fetchNetworkAttachmentDefinitions(cluster) {
+      try {
+        const url = cluster ? `/api/network-attachment-definitions?cluster=${encodeURIComponent(cluster)}` : '/api/network-attachment-definitions';
+        const response = await fetch(url, {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json'
+          }
+        });
+        
+        if (response.ok) {
+          const data = await response.json();
+          networkAttachmentDefinitions = data.items ? data.items.map(item => item.metadata.name) : [];
+          console.log('Fetched network attachment definitions:', networkAttachmentDefinitions);
+          renderInterfaces(interfaces, true);
+        } else {
+          console.error('Failed to fetch network attachment definitions:', response.status);
+          networkAttachmentDefinitions = [];
+          renderInterfaces(interfaces, true);
+        }
+      } catch (error) {
+        console.error('Error fetching network attachment definitions:', error);
+        networkAttachmentDefinitions = [];
+        renderInterfaces(interfaces, true);
+      }
+    }
+    
+    // Function to fetch namespaces from OpenShift API
+    async function fetchNamespaces(cluster) {
+      try {
+        const url = cluster ? `/api/namespaces?cluster=${encodeURIComponent(cluster)}` : '/api/namespaces';
+        const response = await fetch(url, {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json'
+          }
+        });
+        
+        if (response.ok) {
+          const data = await response.json();
+          // Filter namespaces that have the label "awx": "ocp-iaas"
+          namespaces = data.items
+            .filter(item => 
+              item.metadata.labels && 
+              item.metadata.labels.awx === 'ocp-iaas'
+            )
+            .map(item => item.metadata.name);
+          console.log('Fetched namespaces:', namespaces);
+          updateNamespaceDropdown();
+        } else {
+          console.error('Failed to fetch namespaces:', response.status);
+          namespaces = [];
+          updateNamespaceDropdown();
+        }
+      } catch (error) {
+        console.error('Error fetching namespaces:', error);
+        namespaces = [];
+        updateNamespaceDropdown();
+      }
+    }
+    
+    // Function to update the namespace dropdown
+    function updateNamespaceDropdown() {
+      const namespaceSelect = document.querySelector('select[name="namespace"]');
+      if (namespaceSelect) {
+        const currentValue = namespaceSelect.value;
+        namespaceSelect.innerHTML = '<option value="">Select namespace...</option>';
+        
+        namespaces.forEach(namespace => {
+          const option = document.createElement('option');
+          option.value = namespace;
+          option.textContent = namespace;
+          if (namespace === currentValue) {
+            option.selected = true;
+          }
+          namespaceSelect.appendChild(option);
+        });        
+      }
+    }
+    
+    // Storage class cache
+    let storageClasses = [];
+
+    // Function to fetch storage classes from API or env
+    async function fetchStorageClasses(cluster) {
+      try {
+        const url = cluster ? `/api/storageclasses?cluster=${encodeURIComponent(cluster)}` : '/api/storageclasses';
+        const response = await fetch(url, {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json'
+          }
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          storageClasses = data.items.map(item => item.name);
+          console.log('Fetched storage classes:', storageClasses);
+          updateStorageClassDropdown();
+        } else {
+          console.error('Failed to fetch storage classes:', response.status);
+          storageClasses = [];
+          updateStorageClassDropdown();
+        }
+      } catch (error) {
+        console.error('Error fetching storage classes:', error);
+        storageClasses = [];
+        updateStorageClassDropdown();
+      }
+    }
+
+    // Function to update storage class selector options
+    function updateStorageClassDropdown() {
+      const storageSelect = document.querySelector('select[name="storageclass"]');
+      if (!storageSelect) return;
+
+      const currentValue = storageSelect.value;
+      storageSelect.innerHTML = '<option value="">Select storage class...</option>';
+      if (storageClasses.length === 0) {
+        const emptyOption = document.createElement('option');
+        emptyOption.value = '';
+        emptyOption.textContent = 'No storage classes available';
+        emptyOption.disabled = true;
+        storageSelect.appendChild(emptyOption);
+        return;
+      }
+
+      storageClasses.forEach(sc => {
+        const option = document.createElement('option');
+        option.value = sc;
+        option.textContent = sc;
+        if (sc === currentValue) {
+          option.selected = true;
+        }
+        storageSelect.appendChild(option);
+      });
+    }
+
+    // Function to update the cluster dropdown
+    function updateClusterDropdown() {
+      const clusterSelect = document.querySelector('select[name="cluster"]');
+      if (clusterSelect) {
+        const currentValue = clusterSelect.value;
+        clusterSelect.innerHTML = '<option value="">Select cluster...</option>';
+        
+        clusters.forEach(cluster => {
+          const option = document.createElement('option');
+          option.value = cluster.name;
+          option.textContent = cluster.name;
+          if (cluster.name === currentValue) {
+            option.selected = true;
+          }
+          clusterSelect.appendChild(option);
+        });
+        
+        // If no cluster selected and we have clusters, select the first one
+        if (!currentValue && clusters.length > 0) {
+          clusterSelect.value = clusters[0].name;
+          updateClusterRepo(clusters[0].name);
+        }
+        
+        // Add onchange event to update cluster repo
+        clusterSelect.onchange = function() {
+          updateClusterRepo(this.value);
+        };
+        
+        // Update cluster repo if a cluster is selected
+        if (clusterSelect.value) {
+          updateClusterRepo(clusterSelect.value);
+        }
+      }
+    }
+    
+    // Function to update cluster repo based on selected cluster
+    async function updateClusterRepo(selectedCluster) {
+      const clusterRepoInput = document.querySelector('input[name="cluster_repo"]');
+      const satelliteInput = document.querySelector('input[name="satellite"]');
+      
+      if (clusterRepoInput) {
+        const cluster = clusters.find(c => c.name === selectedCluster);
+        if (cluster) {
+          clusterRepoInput.value = cluster.repo || '';
+          if (satelliteInput) {
+            satelliteInput.value = cluster.satellite || '';
+          }
+
+          // Clear namespace selection and options when cluster changes
+          namespaces = [];
+          networkAttachmentDefinitions = [];
+          updateNamespaceDropdown();
+
+          // Fetch namespaces, network attachments, and storage classes for this cluster
+          await fetchNamespaces(selectedCluster);
+          await fetchNetworkAttachmentDefinitions(selectedCluster);
+          await fetchStorageClasses(selectedCluster);
+        } else {
+          clusterRepoInput.value = '';
+          if (satelliteInput) {
+            satelliteInput.value = '';
+          }
+          namespaces = [];
+          networkAttachmentDefinitions = [];
+          storageClasses = [];
+          updateNamespaceDropdown();
+          renderInterfaces(interfaces, true);
+          updateStorageClassDropdown();
+        }
+      }
+    }
+    
+    // Function to collect current form values from all network interfaces
+    function collectCurrentInterfaceValues() {
+      const currentValues = [];
+      const container = document.getElementById('network-interfaces');
+      const interfaceBlocks = container.querySelectorAll('div.mb-4.p-4');
+      
+      interfaceBlocks.forEach((block, idx) => {
+        const nameSelect = block.querySelector(`select[name="net_name_${idx}"]`);
+        const attachInput = block.querySelector(`input[name="net_attach_${idx}"]`);
+        const ipInput = block.querySelector(`input[name="net_ip_${idx}"]`);
+        const netmaskSelect = block.querySelector(`select[name="netmask_${idx}"]`);
+        const gatewayInput = block.querySelector(`input[name="gateway_${idx}"]`);
+        
+        currentValues.push({
+          name: nameSelect ? nameSelect.value : '',
+          attach: attachInput ? attachInput.value : '',
+          ip: ipInput ? ipInput.value : '',
+          netmask: netmaskSelect ? netmaskSelect.value : '',
+          gateway: gatewayInput ? gatewayInput.value : ''
+        });
+      });
+      
+      return currentValues;
+    }
+    
+    // Function to convert CIDR to decimal netmask
+    function cidrToDecimalMask(cidr) {
+      const masks = {
+        21: "255.255.248.0",
+        22: "255.255.252.0", 
+        23: "255.255.254.0",
+        24: "255.255.255.0",
+        25: "255.255.255.128",
+        26: "255.255.255.192",
+        27: "255.255.255.224",
+        28: "255.255.255.240",
+        29: "255.255.255.248",
+        30: "255.255.255.252",
+        31: "255.255.255.254"
+      };
+      return masks[cidr] || "";
+    }
+    
+    // Function to disable the entire form to prevent multiple submissions
+    function disableForm() {
+      const form = document.getElementById('awxForm');
+      const submitButton = form.querySelector('button[type="submit"]');
+      const body = document.body;
+      const isDarkMode = body.classList.contains('dark');
+      
+      // Disable all form inputs, selects, textareas, and buttons
+      const formElements = form.querySelectorAll('input, select, textarea, button');
+      formElements.forEach(element => {
+        element.disabled = true;
+        element.style.opacity = '0.6';
+        element.style.cursor = 'not-allowed';
+      });
+      
+      // Add a visual overlay to the form with theme-appropriate color
+      form.style.position = 'relative';
+      const overlay = document.createElement('div');
+      overlay.id = 'form-overlay';
+      const overlayColor = isDarkMode 
+        ? 'rgba(31, 41, 55, 0.8)'  // Dark gray overlay for dark mode
+        : 'rgba(255, 255, 255, 0.7)'; // Light overlay for light mode
+      
+      overlay.style.cssText = `
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: ${overlayColor};
+        z-index: 1000;
+        pointer-events: none;
+        border-radius: 0.75rem;
+        backdrop-filter: blur(2px);
+        transition: background-color 0.3s ease;
+      `;
+      form.appendChild(overlay);
+      
+      // Update submit button text with theme-appropriate styling
+      if (submitButton) {
+        submitButton.textContent = 'Job Submitted - Form Locked';
+        submitButton.style.backgroundColor = isDarkMode ? '#4B5563' : '#9CA3AF';
+        submitButton.style.color = isDarkMode ? '#D1D5DB' : '#374151';
+      }
+    }
+
+    // Dynamic network interface logic
+    const defaultInterfaces = [
+      {
+        //name: "",
+        attach: "",
+        ip: "",
+        //netmask: "",
+        gateway: ""
+      }
+    ];
+    function renderInterfaces(interfaces, preserveValues = false) {
+      // Collect current values if we want to preserve them
+      const currentValues = preserveValues ? collectCurrentInterfaceValues() : [];
+      
+      const container = document.getElementById('network-interfaces');
+      container.innerHTML = '';
+      interfaces.forEach((iface, idx) => {
+        const block = document.createElement('div');
+        block.className = 'mb-4 p-4 border rounded bg-gray-50 interface-block';
+        
+        // Use current values if available and preserveValues is true, otherwise use interface data
+        const currentData = preserveValues && currentValues[idx] ? currentValues[idx] : iface;
+        
+        // Create dropdown options for network attachment definitions
+        const nameOptions = networkAttachmentDefinitions.map(name => 
+          `<option value="${name}" ${name === currentData.name ? 'selected' : ''}>${name}</option>`
+        ).join('');
+        
+        // Create netmask dropdown options for CIDR /21 to /31
+        const netmaskOptions = [];
+        for (let cidr = 21; cidr <= 31; cidr++) {
+          const decimalMask = cidrToDecimalMask(cidr);
+          const selected = currentData.netmask === decimalMask ? 'selected' : '';
+          netmaskOptions.push(`<option value="${decimalMask}" ${selected}>${decimalMask} /${cidr}</option>`);
+        }
+        
+        block.innerHTML = `
+          <div class="flex justify-between items-center mb-2">
+            <span class="font-bold" ><h4 class="font-bold mb-2 text-gray-700 dark:text-white flex items-center">Interface #${idx + 1}</h4></span>
+            ${idx > 0 ? `<button type="button" class="text-red-600 font-bold remove-interface" data-idx="${idx}">Remove</button>` : ''}
+          </div>
+          <div class="grid grid-cols-2 gap-4 mb-2">
+            <div>
+              <label class="block font-semibold mb-1">Name</label>
+              <select name="net_name_${idx}" class="w-full border rounded px-3 py-2" required onchange="updateAttachField(${idx}, this.value)">
+                <option value="">Select interface...</option>
+                ${nameOptions}
+              </select>
+            </div>
+            <div>
+              <label class="block font-semibold mb-1">Attach</label>
+              <input type="text" name="net_attach_${idx}" value="${currentData.attach}" class="w-full border rounded px-3 py-2 bg-gray-100" readonly>
+            </div>
+          </div>
+          <div class="grid grid-cols-3 gap-4">
+            <div>
+              <label class="block font-semibold mb-1">IP</label>
+              <input type="text" name="net_ip_${idx}" value="${currentData.ip}" placeholder="Enter IP" class="w-full border rounded px-3 py-2" required>
+            </div>
+            <div>
+              <label class="block font-semibold mb-1">Netmask</label>
+              <select name="netmask_${idx}" class="w-full border rounded px-3 py-2" required>
+                <option value="">Select netmask...</option>
+                ${netmaskOptions.join('')}
+              </select>
+            </div>
+            <div>
+              <label class="block font-semibold mb-1">Gateway</label>
+              <input type="text" name="gateway_${idx}" value="${currentData.gateway}" placeholder="Enter IP" class="w-full border rounded px-3 py-2" required>
+            </div>
+          </div>
+        `;
+        container.appendChild(block);
+      });
+      // Remove button logic
+      container.querySelectorAll('.remove-interface').forEach(btn => {
+        btn.addEventListener('click', function() {
+          const idx = parseInt(this.getAttribute('data-idx'));
+          
+          // Collect current values before removing
+          const currentValues = collectCurrentInterfaceValues();
+          
+          // Remove the interface from the array
+          interfaces.splice(idx, 1);
+          
+          // Update the interfaces array with current values (excluding the removed one)
+          currentValues.forEach((value, i) => {
+            if (i < idx) {
+              // Keep interfaces before the removed one
+              interfaces[i] = value;
+            } else if (i > idx && interfaces[i-1]) {
+              // Shift interfaces after the removed one
+              interfaces[i-1] = value;
+            }
+          });
+          
+          renderInterfaces(interfaces, false);
+        });
+      });
+    }
+    
+    // Function to update the attach field based on selected interface name
+    function updateAttachField(interfaceIndex, selectedName) {
+      if (selectedName) {
+        const attachInput = document.querySelector(`input[name="net_attach_${interfaceIndex}"]`);
+        if (attachInput) {
+          // Assuming the attach field should be in the format "default/{selectedName}"
+          // You can modify this format based on your requirements
+          attachInput.value = `default/${selectedName}`;
+        }
+      }
+    }
+    
+    let interfaces = [...defaultInterfaces];
+    
+    // Initialize the form by fetching config, clusters, and rendering interfaces
+    async function initializeForm() {
+      await fetchConfig();
+      await fetchClusters();
+      renderInterfaces(interfaces);
+    }
+    
+    // Call initialization when page loads
+    initializeForm();
+    document.getElementById('add-interface').addEventListener('click', function() {
+      // Collect current values before adding new interface
+      const currentValues = collectCurrentInterfaceValues();
+      
+      // Update the interfaces array with current values
+      currentValues.forEach((value, i) => {
+        if (interfaces[i]) {
+          interfaces[i] = value;
+        }
+      });
+      
+      // Add new interface
+      interfaces.push({ name: '', attach: '', ip: '', netmask: '', gateway: 'N/A' });
+      renderInterfaces(interfaces, false);
+    });
+
+    // Dynamic storage disks logic
+    const defaultDisks = [];
+    
+    // Function to collect current form values from all storage disks
+    function collectCurrentDiskValues() {
+      const currentValues = [];
+      const container = document.getElementById('storage-disks');
+      const diskBlocks = container.querySelectorAll('div.mb-4.p-4');
+      
+      diskBlocks.forEach((block, idx) => {
+        const nameInput = block.querySelector(`input[name="disk_name_${idx}"]`);
+        const sizeInput = block.querySelector(`input[name="disk_size_${idx}"]`);
+        const unitInput = block.querySelector(`input[name="disk_unit_${idx}"]`);
+        const vgNameInput = block.querySelector(`input[name="vg_name_${idx}"]`);
+        const mountInput = block.querySelector(`input[name="lvm_mount_${idx}"]`);
+        const fsInput = block.querySelector(`input[name="lvm_fs_${idx}"]`);
+        const lvmNameInput = block.querySelector(`input[name="lvm_name_${idx}"]`);
+        
+        currentValues.push({
+          name: nameInput ? nameInput.value : '',
+          size: sizeInput ? sizeInput.value : '',
+          unit: unitInput ? unitInput.value : 'Gi',
+          vg_name: vgNameInput ? vgNameInput.value : '',
+          lvm_mount: mountInput ? mountInput.value : '',
+          lvm_fs: fsInput ? fsInput.value : 'xfs',
+          lvm_name: lvmNameInput ? lvmNameInput.value : ''
+        });
+      });
+      
+      return currentValues;
+    }
+    
+    function renderDisks(disks, preserveValues = false) {
+      // Collect current values if we want to preserve them
+      const currentValues = preserveValues ? collectCurrentDiskValues() : [];
+      
+      const container = document.getElementById('storage-disks');
+      container.innerHTML = '';
+      disks.forEach((disk, idx) => {
+        const block = document.createElement('div');
+        block.className = 'mb-4 p-4 border rounded bg-gray-50 disk-block';
+        
+        // Use current values if available and preserveValues is true, otherwise use disk data
+        const currentData = preserveValues && currentValues[idx] ? currentValues[idx] : disk;
+        
+        block.innerHTML = `
+          <div class="flex justify-between items-center mb-2">
+            <span class="font-bold"><h4 class="font-bold mb-2 text-gray-700 dark:text-white flex items-center">Disk #${idx + 1}</h4></span>
+            <button type="button" class="text-red-600 font-bold remove-disk" data-idx="${idx}">Remove</button>
+          </div>
+          <div class="grid grid-cols-3 gap-4">
+            <div>
+              <label class="block font-semibold mb-1">Disk Name</label>
+              <input type="text" name="disk_name_${idx}" value="${currentData.name}" class="w-full border rounded px-3 py-2 bg-gray-100" readonly>
+            </div>
+            <div>
+              <label class="block font-semibold mb-1">Disk Size</label>
+              <div class="grid grid-cols-2 gap-0 border rounded">
+                <input type="text" name="disk_size_${idx}" value="${currentData.size}" class="w-full border-0 border-r rounded-l px-3 py-2" placeholder="Size" required>
+                <input type="text" name="disk_unit_${idx}" value="${currentData.unit || 'Gi'}" class="w-full border-0 rounded-r px-3 py-2" readonly>
+              </div>
+            </div>
+            <div>
+              <label class="block font-semibold mb-1">VG Name</label>
+              <input type="text" name="vg_name_${idx}" value="${currentData.vg_name}" class="w-full border rounded px-3 py-2 bg-gray-100" readonly>
+            </div>
+            <div>
+              <label class="block font-semibold mb-1">Mount Point</label>
+              <input type="text" name="lvm_mount_${idx}" value="${currentData.lvm_mount || ''}" class="w-full border rounded px-3 py-2"  placeholder="Enter mountpoint" required>
+            </div>
+            <div>
+              <label class="block font-semibold mb-1">Filesystem</label>
+              <input type="text" name="lvm_fs_${idx}" value="${currentData.lvm_fs || 'xfs'}" class="w-full border rounded px-3 py-2 bg-gray-100" readonly>
+            </div>
+            <div>
+              <label class="block font-semibold mb-1">LVM Name</label>
+              <input type="text" name="lvm_name_${idx}" value="${currentData.lvm_name}" class="w-full border rounded px-3 py-2 bg-gray-100" readonly>
+            </div>
+          </div>
+        `;
+        container.appendChild(block);
+      });
+      // Remove button logic
+      container.querySelectorAll('.remove-disk').forEach(btn => {
+        btn.addEventListener('click', function() {
+          const idx = parseInt(this.getAttribute('data-idx'));
+          
+          // Collect current values before removing
+          const currentValues = collectCurrentDiskValues();
+          
+          // Remove the disk from the array
+          disks.splice(idx, 1);
+          
+          // Update the disks array with current values (excluding the removed one)
+          currentValues.forEach((value, i) => {
+            if (i < idx) {
+              // Keep disks before the removed one
+              disks[i] = value;
+            } else if (i > idx && disks[i-1]) {
+              // Shift disks after the removed one
+              disks[i-1] = value;
+            }
+          });
+          
+          renderDisks(disks, false);
+        });
+      });
+    }
+    let disks = [];
+    renderDisks(disks);
+    document.getElementById('add-disk').addEventListener('click', function() {
+      // Collect current values before adding new disk
+      const currentValues = collectCurrentDiskValues();
+      
+      // Update the disks array with current values
+      currentValues.forEach((value, i) => {
+        if (disks[i]) {
+          disks[i] = value;
+        }
+      });
+      
+      // Find last disk number and vg_name number
+      let lastNum = 1;
+      let lastVG = 2;
+      let lastLVM = 1;
+      if (disks.length > 0) {
+        const lastDisk = disks[disks.length - 1];
+        // Extract trailing number from disk name
+        const diskMatch = lastDisk.name.match(/(\d+)$/);
+        if (diskMatch) {
+          lastNum = parseInt(diskMatch[1], 10) + 1;
+        } else {
+          lastNum = disks.length + 1;
+        }
+        // Extract trailing number from vg_name and lvm_name
+        const vgMatch = lastDisk.vg_name.match(/(\d+)$/);
+        if (vgMatch) {
+          lastVG = parseInt(vgMatch[1], 10) + 1;
+        } else {
+          lastVG = disks.length + 2;
+        }
+        const lvmMatch = lastDisk.lvm_name.match(/(\d+)$/);
+        if (lvmMatch) {
+          lastLVM = parseInt(lvmMatch[1], 10) + 1;
+        } else {
+          lastLVM = disks.length + 1;
+        }
+      }
+      // Format VG name with two digits
+      const vgName = `vg${lastVG.toString().padStart(2, '0')}`;
+      const LVMName = `app${lastLVM.toString().padStart(2, '0')}`;
+      
+      // Add new disk
+      disks.push({ name: `appvol-${lastNum}`, size: '5', unit: 'Gi', vg_name: vgName, lvm_name: LVMName, lvm_mount: '', lvm_fs: 'xfs' });
+      renderDisks(disks, false);
+    });
+
+    document.getElementById('awxForm').addEventListener('submit', async function(e) {
+      e.preventDefault();
+      
+      // Check if form is already disabled/processing
+      const form = e.target;
+      const submitButton = form.querySelector('button[type="submit"]');
+      if (submitButton.disabled) {
+        return; // Prevent multiple submissions
+      }
+      
+      // Temporarily disable submit button during processing
+      submitButton.disabled = true;
+      submitButton.textContent = 'Saving...';
+      submitButton.style.backgroundColor = '#9CA3AF';
+      
+      // Gather network interfaces
+      const netIfaces = interfaces.map((iface, idx) => ({
+        name: form[`net_name_${idx}`].value,
+        attach: form[`net_attach_${idx}`].value,
+        ip: form[`net_ip_${idx}`].value,
+        netmask: form[`netmask_${idx}`].value,
+        gateway: form[`gateway_${idx}`].value
+      }));
+      // Gather storage disks
+      const storageDisks = disks.map((disk, idx) => ({
+        name: form[`disk_name_${idx}`].value,
+        size: form[`disk_size_${idx}`].value + form[`disk_unit_${idx}`].value,
+        vg_name: form[`vg_name_${idx}`].value
+      }));
+      const fsDisks = disks.map((disk, idx) => ({
+        name: form[`disk_name_${idx}`].value,
+        size: form[`disk_size_${idx}`].value,
+        vg_name: form[`vg_name_${idx}`].value,
+        fs_type: form[`lvm_fs_${idx}`].value,
+        template: "false",
+        lvm_type: "linear",
+        lv_name: form[`lvm_name_${idx}`].value,
+        mount_point: form[`lvm_mount_${idx}`].value
+      }));
+      const data = {
+        data: {
+          template: form.template.value,
+          cluster: form.cluster.value,
+          cluster_repo: form.cluster_repo.value,
+          engineer: {
+            fullname: form.engineer_fullname.value,
+            id: form.engineer_id.value
+          },
+          env: form.env.value,
+          hostname: form.hostname.value,
+          service: form.service.value,
+          namespace: form.namespace.value,
+          details: {
+            description: form.description.value
+          },
+          compute: {
+            cores: Number(form.cores.value),
+            sockets: Number(form.sockets.value),
+            threads: Number(form.threads.value)
+          },
+          memory: form.memory_value.value + form.memory_unit.value,
+          storageclass: form.storageclass.value,
+          os: {
+            version: form.os_version.value,
+            satellite: form.satellite.value
+          },
+          type: form.type.value,
+          network: {
+            interfaces: netIfaces,
+            dns: {
+              server: form.dns_servers.value.split(',').map(s => s.trim())
+            },
+            routes: []
+          },
+          storage: {
+            disks: storageDisks,
+            fs: {
+              lvm: fsDisks
+            }
+          }
+        }
+      };
+      // Replace the following fetch URL and method as needed for your AWX API endpoint
+      const resultDiv = document.getElementById('result');
+      resultDiv.innerHTML = '<div class="bg-blue-100 border border-blue-400 text-blue-700 px-4 py-3 rounded">Saving submission...</div>';
+      
+      console.log('Form data being submitted:', data);
+      
+      try {
+        const response = await fetch('/awx/run-template', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ extra_vars: data })
+        });
+        
+        console.log('Response status:', response.status);
+        console.log('Response headers:', response.headers);
+        const result = await response.json();
+        console.log('Response data:', result);
+        
+        if (response.ok) {
+          // Disable the form to prevent multiple submissions
+          disableForm();
+          // ${result.job_url ? `<br><strong>Job URL:</strong> <a href="${result.job_url}" target="_blank" class="underline">${result.job_url}</a>` : ''}
+          resultDiv.innerHTML = `
+            <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded">
+              <strong>Success!</strong> ${result.message}
+              ${result.submission_id ? `<br><strong>Submission ID:</strong> ${result.submission_id}` : ''}
+              ${result.status ? `<br><strong>Status:</strong> ${result.status}` : ''}
+              <br><div class="mt-3 space-x-2">
+                <button onclick="window.location.href='/submissions'" class="bg-blue-600 text-white font-bold py-2 px-4 rounded hover:bg-blue-700">
+                  View Submissions
+                </button>
+                <button onclick="window.location.reload()" class="bg-gray-600 text-white font-bold py-2 px-4 rounded hover:bg-gray-700">
+                  New Submission
+                </button>
+              </div>
+            </div>
+          `;
+        } else {
+          // Re-enable submit button on error
+          submitButton.disabled = false;
+          submitButton.textContent = 'Save Submission';
+          submitButton.style.backgroundColor = '#2563EB';
+          
+          // Handle specific error types
+          let errorMessage = result.error || 'Failed to launch AWX template';
+          let additionalContent = '';
+          
+          if (response.status === 409 && result.existing_submission_id) {
+            // Hostname conflict error
+            additionalContent = `
+              <br><div class="mt-3 space-x-2">
+                <button onclick="window.location.href='/submissions'" class="bg-blue-600 text-white font-bold py-2 px-4 rounded hover:bg-blue-700">
+                  View Existing Submissions
+                </button>
+                <button onclick="document.getElementById('hostname').focus(); document.getElementById('hostname').select();" class="bg-orange-600 text-white font-bold py-2 px-4 rounded hover:bg-orange-700">
+                  Change Hostname
+                </button>
+              </div>
+            `;
+          }
+          
+          resultDiv.innerHTML = `
+            <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
+              <strong>Error!</strong> ${errorMessage}
+              ${result.details ? `<br><strong>Details:</strong> ${JSON.stringify(result.details)}` : ''}
+              ${additionalContent}
+            </div>
+          `;
+        }
+      } catch (err) {
+        console.error('Form submission error:', err);
+        
+        // Re-enable submit button on error
+        submitButton.disabled = false;
+        submitButton.textContent = 'Save Submission';
+        submitButton.style.backgroundColor = '#2563EB';
+        
+        resultDiv.innerHTML = `
+          <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
+            <strong>Error!</strong> Failed to submit: ${err.message}
+          </div>
+        `;
+      }
+    });
+
+    // Fetch user information and populate engineer fields
+    async function fetchUserInfo() {
+      try {
+        const response = await fetch('/api/user');
+        if (response.ok) {
+          const userData = await response.json();
+          console.log('User data:', userData);
+          
+          const engineerFullnameInput = document.querySelector('input[name="engineer_fullname"]');
+          const engineerIdInput = document.querySelector('input[name="engineer_id"]');
+          
+          // Populate engineer fullname from LDAP displayName
+          if (userData.user && userData.user.displayName) {
+            engineerFullnameInput.value = userData.user.displayName;
+          }
+          
+          // Populate engineer ID from LDAP id (username)
+          if (userData.user && userData.user.id) {
+            engineerIdInput.value = userData.user.id;
+          }
+          
+          console.log('Engineer fields populated:', {
+            fullname: engineerFullnameInput.value,
+            id: engineerIdInput.value
+          });
+        } else {
+          console.error('Failed to fetch user info:', response.status);
+        }
+      } catch (error) {
+        console.error('Error fetching user info:', error);
+      }
+    }
+
+    // Call fetchUserInfo when page loads
+    document.addEventListener('DOMContentLoaded', fetchUserInfo);
+
+    // Update type and OS version fields based on template selection
+    function updateType() {
+      const templateSelect = document.querySelector('select[name="template"]');
+      const typeInput = document.querySelector('input[name="type"]');
+      const osVersionInput = document.querySelector('input[name="os_version"]');
+      
+      const selectedTemplate = templateSelect ? templateSelect.value : '';
+      const template = templates.find(t => t.name === selectedTemplate);
+
+      if (template) {
+        typeInput.value = template.type || '';
+        osVersionInput.value = template.os_version || '';
+      } 
+    }
+
+    // Dark mode functionality
+    function initDarkMode() {
+      const darkModeToggle = document.getElementById('darkModeToggle');
+      const resetTheme = document.getElementById('resetTheme');
+      const body = document.body;
+      
+      function updateThemeDisplay(isDark, isSystemControlled = false) {
+        if (isDark) {
+          body.classList.add('dark');
+          darkModeToggle.innerHTML = '☀️ Light';
+          // Style button as "light mode" button when in dark mode
+          darkModeToggle.className = 'bg-gray-800 hover:bg-gray-700 text-gray-200 px-3 py-2.5 rounded text-sm font-medium transition duration-150 ease-in-out';
+          resetTheme.className = 'bg-gray-800 hover:bg-gray-700 text-gray-200 px-2 py-2.5 rounded text-xs transition duration-150 ease-in-out';
+        } else {
+          body.classList.remove('dark');
+          darkModeToggle.innerHTML = '🌙 Dark';
+          // Style button as "dark mode" button when in light mode
+          darkModeToggle.className = 'bg-gray-100 hover:bg-gray-300 text-gray-800 px-3 py-2.5 rounded text-sm font-medium transition duration-150 ease-in-out';
+          resetTheme.className = 'bg-gray-100 hover:bg-gray-300 text-gray-800 px-2 py-2.5 rounded text-xs font-medium transition duration-150 ease-in-out';
+        }
+        
+        // Update reset button appearance based on whether following system
+        if (isSystemControlled) {
+          resetTheme.style.opacity = '0.5';
+          resetTheme.title = 'Following system theme';
+        } else {
+          resetTheme.style.opacity = '1';
+          resetTheme.title = 'Reset to follow system theme';
+        }
+      }
+      
+      // Check for saved dark mode preference, otherwise use browser/system preference
+      let isDarkMode = localStorage.getItem('darkMode');
+      let isSystemControlled = isDarkMode === null;
+      
+      if (isSystemControlled) {
+        // No saved preference, use browser/system preference
+        isDarkMode = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+      } else {
+        // Use saved preference
+        isDarkMode = isDarkMode === 'true';
+      }
+      
+      // Apply the theme
+      updateThemeDisplay(isDarkMode, isSystemControlled);
+      
+      // Listen for system theme changes
+      if (window.matchMedia) {
+        const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+        mediaQuery.addEventListener('change', function(e) {
+          // Only auto-switch if user hasn't manually set a preference
+          if (localStorage.getItem('darkMode') === null) {
+            updateThemeDisplay(e.matches, true);
+          }
+        });
+      }
+      
+      // Toggle dark mode manually
+      darkModeToggle.addEventListener('click', function() {
+        body.classList.toggle('dark');
+        const isDark = body.classList.contains('dark');
+        
+        // Save preference (this overrides system preference)
+        localStorage.setItem('darkMode', isDark);
+        updateThemeDisplay(isDark, false);
+      });
+      
+      // Reset to system theme
+      resetTheme.addEventListener('click', function() {
+        // Remove saved preference to follow system theme
+        localStorage.removeItem('darkMode');
+        
+        // Apply system theme
+        const systemDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+        updateThemeDisplay(systemDark, true);
+      });
+    }
+
+    // Initialize dark mode when page loads
+    document.addEventListener('DOMContentLoaded', function() {
+      initDarkMode();
+    });
+  </script>
+</body>
+</html>
